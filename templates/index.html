@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LecSynth</title>
+</head>
+<body>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="video">Choose a video file:</label>
+        <input type="file" id="video" name="video" accept="video/*" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if text_result %}
+        <p>Text Result:</p>
+        <p>{{ text_result }}</p>
+    {% endif %}
+</body>
+</html>
