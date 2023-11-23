@@ -7,11 +7,13 @@ import pandas as pd
 import numpy as np
 import moviepy.editor as mp
 import speech_recognition as sr
+from summarizer import Summarizer,TransformerSummarizer
 
 
 app = Flask(__name__)
 app.secret_key = 'dc9a0187c5297e94c26cdd32ffb3266eda502bc49a2874cb77961707ecda021f'
 app.debug = True
+model = TransformerSummarizer(transformer_type="XLNet",transformer_model_key="xlnet-base-cased")
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -50,7 +52,9 @@ def upload_file():
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(video_path)
         text_result = convert_video_to_text(video_path)
-    return render_template('index.html', text_result=text_result)
+        summary = ''.join(model(text_result, min_length=10))
+        print(summary)
+    return render_template('index.html', text_result=text_result,summary=summary)
 
 
 if __name__ == '__main__':
