@@ -17,9 +17,18 @@
         <p>Text Result:</p>
         <p>{{ text_result }}</p>
     {% endif %}
+    {% if corrected %}
+        <p>Corrected Text:</p>
+        <p>{{ corrected }}</p>
+    {% endif %}
+    {% if merged %}
+        <p>Merged Paragraph:</p>
+        <p>{{ merged }}</p>
+    {% endif %}
     {% if summary %}
         <p>summary:</p>
         <p>{{ summary }}</p>
     {% endif %}
+    
 </body>
 </html>

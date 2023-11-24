@@ -8,6 +8,9 @@ import numpy as np
 import moviepy.editor as mp
 import speech_recognition as sr
 from summarizer import Summarizer,TransformerSummarizer
+from transformers import T5Tokenizer, TFT5ForConditionalGeneration
+from sentence_transformers import SentenceTransformer, util
+
 
 
 app = Flask(__name__)
@@ -17,6 +20,9 @@ model = TransformerSummarizer(transformer_type="XLNet",transformer_model_key="xl
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+tokenizer = T5Tokenizer.from_pretrained('SJ-Ray/Re-Punctuate')
+model = TFT5ForConditionalGeneration.from_pretrained('SJ-Ray/Re-Punctuate')
+model2 = SentenceTransformer('all-MiniLM-L6-v2')
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -37,6 +43,20 @@ def convert_video_to_text(video_path):
     text_result = r.recognize_google(data)
     return text_result
 
+def merge_paragraphs(paragraph1, paragraph2):
+    sentences1 = [sentence.strip() for sentence in paragraph1.split('.') if sentence.strip()]
+    sentences2 = [sentence.strip() for sentence in paragraph2.split('.') if sentence.strip()]
+
+    embeddings1 = model2.encode(sentences1, convert_to_tensor=True)
+    embeddings2 = model2.encode(sentences2, convert_to_tensor=True)
+    similarity_matrix = util.pytorch_cos_sim(embeddings1, embeddings2)
+    merged_paragraph = ""
+    for i in range(len(sentences1)):
+        max_sim_idx = similarity_matrix[i].argmax().item()
+        merged_paragraph += f"{sentences1[i]}. {sentences2[max_sim_idx]}. "
+
+    return merged_paragraph.strip()
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'video' not in request.files:
@@ -51,10 +71,14 @@ def upload_file():
     if file:
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(video_path)
-        text_result = convert_video_to_text(video_path)
-        summary = ''.join(model(text_result, min_length=10))
-        print(summary)
-    return render_template('index.html', text_result=text_result,summary=summary)
+        text_result = convert_video_to_text(video_path)   
+        inputs = tokenizer.encode("punctuate: " + text_result, return_tensors="tf")
+        result = model.generate(inputs)
+        decoded_output = tokenizer.decode(result[0], skip_special_tokens=True)
+        para2="heelo"
+        merged_paragraph = merge_paragraphs(decoded_output, para2)
+        summary = ''.join(model(merged_paragraph, min_length=10))
+    return render_template('index.html', text_result=text_result,corrected=decoded_output,merged=merged_paragraph,summary=summary)
 
 
 if __name__ == '__main__':
