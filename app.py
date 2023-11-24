@@ -77,7 +77,8 @@ def upload_file():
         decoded_output = tokenizer.decode(result[0], skip_special_tokens=True)
         para2="Good Morning."
         merged_paragraph = merge_paragraphs(decoded_output, para2)
-        summary = ''.join(modelsummary(merged_paragraph, min_length=2))
+        me=merged_paragraph
+        summary = ''.join(modelsummary(me, min_length=5))
     return render_template('index.html', text_result=text_result,corrected=decoded_output,merged=merged_paragraph,summary=summary)
 
 
