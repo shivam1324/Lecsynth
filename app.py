@@ -16,7 +16,7 @@ from sentence_transformers import SentenceTransformer, util
 app = Flask(__name__)
 app.secret_key = 'dc9a0187c5297e94c26cdd32ffb3266eda502bc49a2874cb77961707ecda021f'
 app.debug = True
-model = TransformerSummarizer(transformer_type="XLNet",transformer_model_key="xlnet-base-cased")
+modelsummary = TransformerSummarizer(transformer_type="XLNet",transformer_model_key="xlnet-base-cased")
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -75,9 +75,9 @@ def upload_file():
         inputs = tokenizer.encode("punctuate: " + text_result, return_tensors="tf")
         result = model.generate(inputs)
         decoded_output = tokenizer.decode(result[0], skip_special_tokens=True)
-        para2="heelo"
+        para2="Good Morning."
         merged_paragraph = merge_paragraphs(decoded_output, para2)
-        summary = ''.join(model(merged_paragraph, min_length=10))
+        summary = ''.join(modelsummary(merged_paragraph, min_length=2))
     return render_template('index.html', text_result=text_result,corrected=decoded_output,merged=merged_paragraph,summary=summary)
 
 
